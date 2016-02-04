@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+  
+  each movie in movies
+    div
+        img(src=movie.poster)
+        p #{movie.title}
+        p #{movie.plot}
+        
+        

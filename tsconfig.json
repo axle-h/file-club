@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "emitDecoratorMetadata": true,
+        "module": "commonjs",
+        "outDir": "bin",
+        "rootDir": "src",
+        "sourceMap": true
+    }
+}
