@@ -1,49 +1,45 @@
 import util = require("util");
-import Country from "./Country";
-import Director  from "./Director";
-import Genre from "./Genre";
-import Actor from './Actor';
+import { MovieFile } from './MovieFile';
 
-
-export default class Movie {
-    path: string
-    title: string
-    year: number
-    actors: Actor[]
-    awardNominations: number
-    awardWins: number
-    countries: Country[]
-    director: Director
-    genres: Genre[]
-    imdbId: string
-    imdbRating: number
-    imdbVotes: number
-    metacritic: number
-    plot: string
-    poster: string
-    rated: string
-    released: string
-    runtime: string
-    tomatoConsensus: string
-    tomatoFresh: string
-    tomatoImage: string
-    tomatoMeter: string
-    tomatoRating: string
-    tomatoReviews: string
-    tomatoUserMeter: string
-    tomatoUserRating: string
-    tomatoUserReviews: string
+export class Movie {    
+    public path: string;
+    public title: string;
+    public year: number;
+    public actors: string[];
+    public awardNominations: number;
+    public awardWins: number;
+    public countries: string[];
+    public director: string;
+    public genres: string[];
+    public imdbId: string;
+    public imdbRating: number;
+    public imdbVotes: number;
+    public metacritic: number;
+    public plot: string;
+    public poster: string;
+    public rated: string;
+    public released: string;
+    public runtime: number;
+    public tomatoConsensus: string;
+    public tomatoFresh: number;
+    public tomatoImage: string;
+    public tomatoMeter: number;
+    public tomatoRating: number;
+    public tomatoReviews: number;
+    public tomatoUserMeter: number;
+    public tomatoUserRating: number;
+    public tomatoUserReviews: number;
         
-    constructor(movieFile, omdb) {
+    constructor(movieFile: MovieFile, omdb) {
         this.path = movieFile.path;
         this.title = omdb.title;
         this.year = omdb.year;
-        this.actors = omdb.actors.map(function(name) { return new Actor(name) });
+        this.actors = omdb.actors;
         this.awardNominations = omdb.awards.nominations;
         this.awardWins = omdb.awards.wins;
-        this.countries = omdb.countries.map(function(name) { return new Country(name) });
-        this.director = new Director(omdb.director);
-        this.genres = omdb.genres.map(function(name) { return new Genre(name) });
+        this.countries = omdb.countries;
+        this.director = omdb.director;
+        this.genres = omdb.genres;
         this.imdbId = omdb.imdb.id;
         this.imdbRating = omdb.imdb.rating;
         this.imdbVotes = omdb.imdb.votes;

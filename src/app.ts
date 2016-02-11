@@ -6,11 +6,22 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var http = require('http');
 var routes = require('./routes/index');
+import { IMovieService } from "./services/MovieService"
+import { wiring, Binding } from "./infrastructure/Wiring";
+
+// Scrape movies.
+// TODO: run on CRON.
+var movieService = wiring.Resolve<IMovieService>(Binding.IMovieService);
+movieService.scrapeAllMovies((error: Error, result: Object) => {
+   console.log("Scraped OK: " + JSON.stringify(result)); 
+});
 
 var app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+var dir = path.dirname(require.main.filename);
+
+app.set('views', path.resolve(dir, "..", "..", "src", "views"))
 app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
@@ -19,7 +30,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
 app.use('/', routes);
 

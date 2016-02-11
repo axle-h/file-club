@@ -1,24 +1,47 @@
 var omdb = require("omdb");
-import fs = require("fs");
 import async = require("async");
-import MovieFile from "../models/MovieFile";
-import Movie from "../models/Movie";
+import { MovieFile } from "../models/MovieFile";
+import { Movie } from "../models/Movie";
+import { Inject } from "inversify";
+import { IMovieFileRepository } from "../repositories/MovieFileRepository"
+import { IMovieRepository } from "../repositories/MovieRepository"
 
-export default class MovieService {
-    path: string;
+export interface IMovieService {
+    scrapeAllMovies(callback: (error: Error, result: boolean) => void);
+}
+
+@Inject("IMovieFileRepository", "IMovieRepository")
+export class MovieService implements IMovieService {
     
-    constructor(path) {
-        this.path = path;
+    constructor(private movieFileRepository: IMovieFileRepository, private movieRepository: IMovieRepository) {
+        
     }
     
-    scrapeAllMovies(callback) {
-        fs.readdir(this.path, (err, files) => {
-            if(err) {
-                callback(err);
+    public scrapeAllMovies(callback: (error: Error, result: boolean) => void) {
+        this.movieFileRepository.parseAllMovieFiles((error: Error, movieFiles: MovieFile[]) => {
+            if(error) {
+                callback(error, null);
                 return;
             }
-            
-            this.scrapeMovies(files, callback);
+
+            if(movieFiles.length == 0) {
+                callback(new Error("No movies found"), null);
+                return;
+            }
+
+            var functions = movieFiles.map((movieFile) =>
+                (callback: (error: Error, movie: Movie) => void) => this.scrapeMovie(movieFile, callback));
+
+            async.series(functions, (error, movies) => {
+                if(error) {
+                    callback(error, null);
+                    return;
+                }
+                
+                this.movieRepository.insertAll(movies, (error: Error, result: boolean) => {
+                    callback(error, result);
+                });
+            });
         });
     }
     
@@ -28,50 +51,15 @@ export default class MovieService {
      * @param {MovieFile} movieFile the movie file to scrape.
      * @param callback the callback.
      */
-    scrapeMovie(movieFile: MovieFile, callback) {
-        omdb.get(movieFile, { fullPlot: true, tomatoes: true }, (err, result) => {
-            if(err) {
-                callback(err);
+    private scrapeMovie(movieFile: MovieFile, callback: (error: Error, movie: Movie) => void) {
+        omdb.get(movieFile, { fullPlot: true, tomatoes: true }, (error, result) => {
+            if(error) {
+                callback(new Error(error), null);
                 return;
             }
             
             var movie = new Movie(movieFile, result)
             callback(null, movie);
-        });
-    }
-    
-    scrapeMovies(fileNames: string[], callback) {
-        var pattern = /^(.+)\s+\((\d{4})\)$/;
-    
-        var movieFiles = [];
-        for (var i = 0; i < fileNames.length; i++) {
-            let file = fileNames[i];
-                                    
-            let match = pattern.exec(file);
-            if (!match) {
-                console.info("Ignoring badly formatted file: " + file);
-                continue;
-            }
-                
-            let title = match[1];
-            let year = match[2];
-            let movie = new MovieFile(file, title, year);
-            movieFiles.push(movie);
-        }
-        
-        if(movieFiles.length == 0) {
-            callback(new Error("No movies found"));
-            return;
-        }
-        
-        var functions = movieFiles.map((movieFile) => {
-            return (callback) => {
-                this.scrapeMovie(movieFile, callback);
-            }
-        });
-        
-        async.series(functions, (err, movies) => {
-            callback(null, movies);
         });
     }
 }
