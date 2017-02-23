@@ -18,28 +18,41 @@ export class MovieService implements IMovieService {
     }
     
     public scrapeAllMovies(callback: (error: Error, result: boolean) => void) {
-        this.movieFileRepository.parseAllMovieFiles((error: Error, movieFiles: MovieFile[]) => {
+        this.movieRepository.getAllPaths((error: Error, moviePaths: string[]) => {
             if(error) {
                 callback(error, null);
                 return;
             }
-
-            if(movieFiles.length == 0) {
-                callback(new Error("No movies found"), null);
-                return;
-            }
-
-            var functions = movieFiles.map((movieFile) =>
-                (callback: (error: Error, movie: Movie) => void) => this.scrapeMovie(movieFile, callback));
-
-            async.series(functions, (error, movies) => {
+                        
+            this.movieFileRepository.parseAllMovieFiles(moviePaths, (error: Error, movieFiles: MovieFile[]) => {
                 if(error) {
                     callback(error, null);
                     return;
                 }
-                
-                this.movieRepository.insertAll(movies, (error: Error, result: boolean) => {
-                    callback(error, result);
+
+                if(movieFiles.length == 0) {
+                    callback(new Error("No movies found"), null);
+                    return;
+                }
+
+                var functions = movieFiles.map((movieFile) =>
+                    (callback: (error: Error, movie: Movie) => void) => this.scrapeMovie(movieFile, callback));
+
+                async.series(functions, (error, movies) => {
+                    if(error) {
+                        callback(error, null);
+                        return;
+                    }
+                    
+                    movies = movies.filter(x => x != null);
+                    if(movies.length == 0) {
+                        callback(new Error("No movies found"), null);
+                        return;
+                    }
+                    
+                    this.movieRepository.addAll(movies, (error: Error, result: boolean) => {
+                        callback(error, result);
+                    });
                 });
             });
         });
@@ -58,8 +71,14 @@ export class MovieService implements IMovieService {
                 return;
             }
             
-            var movie = new Movie(movieFile, result)
-            callback(null, movie);
+            if(result) {
+                var movie = new Movie(movieFile, result)
+                callback(null, movie);
+                return;
+            }
+            
+            console.error(new Error(movieFile.path + " not found on omdb"));
+            callback(null, null);
         });
     }
 }

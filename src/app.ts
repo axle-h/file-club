@@ -13,7 +13,12 @@ import { wiring, Binding } from "./infrastructure/Wiring";
 // TODO: run on CRON.
 var movieService = wiring.Resolve<IMovieService>(Binding.IMovieService);
 movieService.scrapeAllMovies((error: Error, result: Object) => {
-   console.log("Scraped OK: " + JSON.stringify(result)); 
+    if(error) {
+        console.error(error);
+        return;
+    }
+    
+   console.log(JSON.stringify(result));
 });
 
 var app = express();

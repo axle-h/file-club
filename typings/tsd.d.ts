@@ -9,4 +9,5 @@
 /// <reference path="debug/debug.d.ts" />
 /// <reference path="jade/jade.d.ts" />
 /// <reference path="morgan/morgan.d.ts" />
-/// <reference path="../node_modules/inversify/type_definitions/inversify-global.d.ts" />
+/// <reference path="winston/winston.d.ts" />
+undefined

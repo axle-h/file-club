@@ -1,10 +1,6 @@
-import util = require("util");
 import { MovieFile } from './MovieFile';
 
-export class Movie {    
-    public path: string;
-    public title: string;
-    public year: number;
+export class Movie extends MovieFile {
     public actors: string[];
     public awardNominations: number;
     public awardWins: number;
@@ -31,9 +27,8 @@ export class Movie {
     public tomatoUserReviews: number;
         
     constructor(movieFile: MovieFile, omdb) {
-        this.path = movieFile.path;
-        this.title = omdb.title;
-        this.year = omdb.year;
+        super(movieFile.path, omdb.title, omdb.year)
+        
         this.actors = omdb.actors;
         this.awardNominations = omdb.awards.nominations;
         this.awardWins = omdb.awards.wins;
@@ -58,9 +53,5 @@ export class Movie {
         this.tomatoUserMeter = omdb.tomato.userMeter;
         this.tomatoUserRating = omdb.tomato.userRating;
         this.tomatoUserReviews = omdb.tomato.userReviews;
-    }
-    
-    fullName() {
-        return util.format('%s (%d)', this.title, this.year);
     }
 }
